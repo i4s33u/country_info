@@ -4,7 +4,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import com.example.quan_bui.countryinfo.Country;
 import com.example.quan_bui.countryinfo.R;
@@ -43,6 +42,12 @@ public class CountryAdapter
         return countries.size();
     }
 
+    public void removeAt(int position) {
+        countries.remove(position);
+        notifyItemRemoved(position);
+        notifyItemRangeChanged(position, countries.size());
+    }
+
     class ViewHolder
         extends RecyclerView.ViewHolder {
         public TextView tvName;
@@ -55,17 +60,6 @@ public class CountryAdapter
             tvCapital = (TextView) itemView.findViewById(R.id.tvCapital);
             tvRegion = (TextView) itemView.findViewById(R.id.tvRegion);
         }
-    }
-
-    public void addData(Country country) {
-        countries.add(country);
-        notifyItemInserted(0);
-    }
-
-    public void removeAt(int position) {
-        countries.remove(position);
-        notifyItemRemoved(position);
-        notifyItemRangeChanged(position, countries.size());
     }
 }
 

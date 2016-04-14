@@ -1,13 +1,12 @@
 package com.example.quan_bui.countryinfo;
 
+import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.widget.Toast;
 import com.example.quan_bui.countryinfo.adapter.CountryAdapter;
-import java.util.ArrayList;
-import java.util.List;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -24,9 +23,6 @@ public class MainActivity
     RxJavaCallAdapterFactory rxAdapter;
 
     RecyclerView rv;
-    CountryAdapter adapter;
-
-    List<Country> countries;
 
     NetworkService service;
 
@@ -48,10 +44,6 @@ public class MainActivity
         rv.setHasFixedSize(true);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
-        //countries = new ArrayList<>();
-        //adapter = new CountryAdapter(countries);
-        //rv.setAdapter(adapter);
-
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
         fab.setOnClickListener(v -> {
@@ -60,6 +52,8 @@ public class MainActivity
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(list -> rv.setAdapter(new CountryAdapter(list)));
+            Toast.makeText(getApplicationContext(), "Size: " + rv.getHeight(), Toast.LENGTH_LONG)
+                .show();
         });
     }
 }
