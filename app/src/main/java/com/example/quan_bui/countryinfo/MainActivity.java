@@ -15,7 +15,6 @@ import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -68,9 +67,7 @@ public class MainActivity
         rv.setHasFixedSize(true);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
-        listToShow = new ArrayList<>();
-
-        adapter = new PersonAdapter(listToShow);
+        adapter = new PersonAdapter(new ArrayList<>());
         rv.setAdapter(adapter);
 
         service = retrofit.create(NetworkService.class);
@@ -79,48 +76,19 @@ public class MainActivity
             @Override
             public void onClick(View v) {
 
-                //Observable.from(personList)
-                //    .subscribeOn(Schedulers.from(executor))
-                //    .observeOn(AndroidSchedulers.mainThread())
-                //    .zipWith(service.getCountries()
-                //    .flatMap(Observable::from), (person, country) -> combine(country, person))
-                //    .subscribe(newPerson -> listToShow.add(newPerson));
-
                 service.getCountries()
                     .subscribeOn(Schedulers.newThread())
                     .observeOn(AndroidSchedulers.mainThread())
                     .flatMap(Observable::from)
                     .zipWith(Observable.from(personList),
                              (country, person) -> combine(country, person))
-                    .subscribe(new Subscriber<Person>() {
-                        @Override
-                        public void onCompleted() {
-
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-
-                        }
-
-                        @Override
-                        public void onNext(Person newPerson) {
-                            listToShow.add(newPerson);
-                            adapter.notifyItemInserted(adapter.getItemCount() + 1);
-                        }
-                    });
+                    .subscribe(person -> adapter.add(person));
             }
         });
     }
 
     public Person combine(Country country, Person person) {
-        Person combinedPerson = new Person();
-        //if (person.getCountryCode().equalsIgnoreCase(country.getCountryCode())) {
-        combinedPerson.setName(person.getName());
-        combinedPerson.setAge(person.getAge());
-        combinedPerson.setCountryCode(person.getCountryCode());
-        combinedPerson.setCountryName(country.getName());
-        //}
-        return combinedPerson;
+        person.setCountryName(country.getName());
+        return person;
     }
 }
