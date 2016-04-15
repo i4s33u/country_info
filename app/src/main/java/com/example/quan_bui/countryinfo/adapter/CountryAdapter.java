@@ -48,6 +48,11 @@ public class CountryAdapter
         notifyItemRangeChanged(position, countries.size());
     }
 
+    public void add(Country country) {
+        countries.add(country);
+        notifyDataSetChanged();
+    }
+
     class ViewHolder
         extends RecyclerView.ViewHolder {
         public TextView tvName;
