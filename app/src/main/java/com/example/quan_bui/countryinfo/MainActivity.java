@@ -8,13 +8,16 @@ import android.support.v7.widget.RecyclerView;
 import android.widget.Button;
 import android.widget.Toast;
 import com.example.quan_bui.countryinfo.adapter.CountryAdapter;
-import com.jakewharton.rxbinding.view.RxView;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.Observable;
+import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
@@ -39,10 +42,16 @@ public class MainActivity
     FloatingActionButton fab;
     Button btnAsia;
 
+    ExecutorService executor;
+    ExecutorService anotherExecutor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        executor = Executors.newSingleThreadExecutor();
+        anotherExecutor = Executors.newSingleThreadExecutor();
 
         rxAdapter = RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io());
 
@@ -61,30 +70,42 @@ public class MainActivity
         fab = (FloatingActionButton) findViewById(R.id.fab);
         btnAsia = (Button) findViewById(R.id.btnAsia);
 
-        adapter = new CountryAdapter(localCountryList);
+        adapter = new CountryAdapter(new ArrayList<>());
         rv.setAdapter(adapter);
 
-        fab.setOnClickListener(v -> {
-            service = retrofit.create(NetworkService.class);
-            service.getCountries()
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .flatMap(list -> Observable.from(list))
-                .map(country -> localCountryList.add(country))
-                .subscribe(value -> adapter.notifyDataSetChanged());
+        service = retrofit.create(NetworkService.class);
 
-            Toast.makeText(getApplicationContext(),
-                           "Received: " + rv.getHeight(), Toast.LENGTH_LONG).show();
+        fab.setOnClickListener(v -> {
+
+            service.getCountries()
+                .subscribeOn(Schedulers.from(executor))
+                .flatMap(list -> Observable.from(list))
+                .subscribe(country -> localCountryList.add(country));
         });
 
-        //Using RxBindings library to set Observable click listener
-        RxView.clicks(btnAsia).subscribe(aVoid -> {
+        btnAsia.setOnClickListener(v -> {
+
             Observable.from(localCountryList)
-                .subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
+                .delay(1000, TimeUnit.MILLISECONDS)
+                .subscribeOn(Schedulers.from(anotherExecutor))
                 .filter(country -> country.getRegion().equalsIgnoreCase("asia"))
-                .map(asiaCountry -> asiaCountryList.add(asiaCountry))
-                .subscribe(list -> rv.setAdapter(new CountryAdapter(asiaCountryList)));
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<Country>() {
+                    @Override
+                    public void onCompleted() {
+                        Toast.makeText(getApplicationContext(), "DONE", Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(Country country) {
+                        adapter.add(country);
+                    }
+                });
         });
     }
 }
