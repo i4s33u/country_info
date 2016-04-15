@@ -22,7 +22,6 @@
                 android:layout_alignParentTop="true"
                 android:padding="10dp"
                 android:text="Person Name"
-                android:textColor="#1CA65F"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -35,8 +34,7 @@
                 android:layout_below="@+id/tvPersonName"
                 android:layout_marginRight="15dp"
                 android:padding="5dp"
-                android:text="Country Code"
-                android:textColor="#F4A460" />
+                android:text="Country Code" />
 
             <TextView
                 android:id="@+id/tvCountry"
@@ -48,7 +46,7 @@
                 android:layout_marginRight="15dp"
                 android:padding="5dp"
                 android:text="Country Name"
-                android:textColor="#1CA65F"
+                android:textColor="#F4A460"
                 android:textStyle="bold" />
 
         </RelativeLayout>

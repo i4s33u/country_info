@@ -20,7 +20,7 @@
                 android:layout_centerHorizontal="true"
                 android:layout_marginBottom="8dp"
                 android:layout_marginTop="8dp"
-                android:text="Get Country Name" />
+                android:text="Combine Data" />
         </RelativeLayout>
 
         <android.support.v7.widget.RecyclerView
