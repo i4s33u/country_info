@@ -5,12 +5,15 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.Toast;
 import com.example.quan_bui.countryinfo.adapter.CountryAdapter;
+import com.jakewharton.rxbinding.view.RxView;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class MainActivity
@@ -47,13 +50,32 @@ public class MainActivity
         fab = (FloatingActionButton) findViewById(R.id.fab);
 
         fab.setOnClickListener(v -> {
+            fab.setVisibility(View.VISIBLE);
             service = retrofit.create(NetworkService.class);
             service.getCountries()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(list -> rv.setAdapter(new CountryAdapter(list)));
-            Toast.makeText(getApplicationContext(), "Size: " + rv.getHeight(), Toast.LENGTH_LONG)
+            Toast.makeText(getApplicationContext(),
+                           "Received: " + rv.getHeight(),
+                           Toast.LENGTH_LONG)
                 .show();
+        });
+
+        //Using RxBindings library
+        RxView.clicks(fab).subscribe(new Action1<Void>() {
+            @Override
+            public void call(Void aVoid) {
+                fab.setVisibility(View.VISIBLE);
+                service = retrofit.create(NetworkService.class);
+                service.getCountries()
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(list -> rv.setAdapter(new CountryAdapter(list)));
+                Toast.makeText(getApplicationContext(),
+                               "Received: " + rv.getHeight(),
+                               Toast.LENGTH_LONG).show();
+            }
         });
     }
 }
