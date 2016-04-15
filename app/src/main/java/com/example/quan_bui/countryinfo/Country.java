@@ -7,11 +7,24 @@ public class Country {
     private String name;
     private String capital;
     private String region;
+    private String countryCode;
 
     public Country(String name, String capital, String region) {
         this.name = name;
         this.capital = capital;
         this.region = region;
+    }
+
+    public Country() {
+
+    }
+
+    public String getCountryCode() {
+        return countryCode;
+    }
+
+    public void setCountryCode(String countryCode) {
+        this.countryCode = countryCode;
     }
 
     public String getCapital() {

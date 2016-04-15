@@ -1,18 +1,16 @@
 package com.example.quan_bui.countryinfo;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
-import com.example.quan_bui.countryinfo.adapter.CountryAdapter;
+import com.example.quan_bui.countryinfo.adapter.PersonAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -32,26 +30,30 @@ public class MainActivity
 
     RecyclerView rv;
 
-    List<Country> localCountryList;
-    List<Country> asiaCountryList;
+    List<Person> personList;
 
-    CountryAdapter adapter;
+    List<Person> listToShow;
+
+    PersonAdapter adapter;
 
     NetworkService service;
 
-    FloatingActionButton fab;
-    Button btnAsia;
-
     ExecutorService executor;
-    ExecutorService anotherExecutor;
+
+    Button btnGet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        personList = new ArrayList<>();
+        personList.add(new Person("Quan Bui", 25, "vn"));
+        personList.add(new Person("Mohamed Abu", 29, "ae"));
+        personList.add(new Person("Man from Venezuela", 34, "ve"));
+        personList.add(new Person("Zhao Lee", 21, "tw"));
+
         executor = Executors.newSingleThreadExecutor();
-        anotherExecutor = Executors.newSingleThreadExecutor();
 
         rxAdapter = RxJavaCallAdapterFactory.createWithScheduler(Schedulers.io());
 
@@ -60,52 +62,65 @@ public class MainActivity
             .addCallAdapterFactory(rxAdapter)
             .build();
 
-        localCountryList = new ArrayList<>();
-        asiaCountryList = new ArrayList<>();
+        btnGet = (Button) findViewById(R.id.btnGet);
 
         rv = (RecyclerView) findViewById(R.id.rv);
         rv.setHasFixedSize(true);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        btnAsia = (Button) findViewById(R.id.btnAsia);
+        listToShow = new ArrayList<>();
 
-        adapter = new CountryAdapter(new ArrayList<>());
+        adapter = new PersonAdapter(listToShow);
         rv.setAdapter(adapter);
 
         service = retrofit.create(NetworkService.class);
 
-        fab.setOnClickListener(v -> {
+        btnGet.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
 
-            service.getCountries()
-                .subscribeOn(Schedulers.from(executor))
-                .flatMap(list -> Observable.from(list))
-                .subscribe(country -> localCountryList.add(country));
+                //Observable.from(personList)
+                //    .subscribeOn(Schedulers.from(executor))
+                //    .observeOn(AndroidSchedulers.mainThread())
+                //    .zipWith(service.getCountries()
+                //    .flatMap(Observable::from), (person, country) -> combine(country, person))
+                //    .subscribe(newPerson -> listToShow.add(newPerson));
+
+                service.getCountries()
+                    .subscribeOn(Schedulers.newThread())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .flatMap(Observable::from)
+                    .zipWith(Observable.from(personList),
+                             (country, person) -> combine(country, person))
+                    .subscribe(new Subscriber<Person>() {
+                        @Override
+                        public void onCompleted() {
+
+                        }
+
+                        @Override
+                        public void onError(Throwable e) {
+
+                        }
+
+                        @Override
+                        public void onNext(Person newPerson) {
+                            listToShow.add(newPerson);
+                            adapter.notifyItemInserted(adapter.getItemCount() + 1);
+                        }
+                    });
+            }
         });
+    }
 
-        btnAsia.setOnClickListener(v -> {
-
-            Observable.from(localCountryList)
-                .delay(1000, TimeUnit.MILLISECONDS)
-                .subscribeOn(Schedulers.from(anotherExecutor))
-                .filter(country -> country.getRegion().equalsIgnoreCase("asia"))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Country>() {
-                    @Override
-                    public void onCompleted() {
-                        Toast.makeText(getApplicationContext(), "DONE", Toast.LENGTH_LONG).show();
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onNext(Country country) {
-                        adapter.add(country);
-                    }
-                });
-        });
+    public Person combine(Country country, Person person) {
+        Person combinedPerson = new Person();
+        //if (person.getCountryCode().equalsIgnoreCase(country.getCountryCode())) {
+        combinedPerson.setName(person.getName());
+        combinedPerson.setAge(person.getAge());
+        combinedPerson.setCountryCode(person.getCountryCode());
+        combinedPerson.setCountryName(country.getName());
+        //}
+        return combinedPerson;
     }
 }

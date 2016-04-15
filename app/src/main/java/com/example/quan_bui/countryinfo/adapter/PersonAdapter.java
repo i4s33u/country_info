@@ -5,20 +5,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import com.example.quan_bui.countryinfo.Country;
+import com.example.quan_bui.countryinfo.Person;
 import com.example.quan_bui.countryinfo.R;
 import java.util.List;
 
 /**
  * Created by Quan Bui on 4/14/16.
  */
-public class CountryAdapter
-    extends RecyclerView.Adapter<CountryAdapter.ViewHolder> {
+public class PersonAdapter
+    extends RecyclerView.Adapter<PersonAdapter.ViewHolder> {
 
-    List<Country> countries;
+    private List<Person> personList;
 
-    public CountryAdapter(List<Country> countries) {
-        this.countries = countries;
+    public PersonAdapter(List<Person> personList) {
+        this.personList = personList;
     }
 
     @Override
@@ -31,39 +31,39 @@ public class CountryAdapter
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Country country = countries.get(position);
-        holder.tvName.setText(country.getName());
-        holder.tvCapital.setText(country.getCapital());
-        holder.tvRegion.setText(country.getRegion());
+        Person person = personList.get(position);
+        holder.tvPersonName.setText(person.getName());
+        holder.tvCountryCode.setText(person.getCountryCode());
+        holder.tvCountry.setText(person.getCountryName());
     }
 
     @Override
     public int getItemCount() {
-        return countries.size();
+        return personList.size();
     }
 
     public void removeAt(int position) {
-        countries.remove(position);
+        personList.remove(position);
         notifyItemRemoved(position);
-        notifyItemRangeChanged(position, countries.size());
+        notifyItemRangeChanged(position, personList.size());
     }
 
-    public void add(Country country) {
-        countries.add(country);
+    public void add(Person person) {
+        personList.add(person);
         notifyDataSetChanged();
     }
 
     class ViewHolder
         extends RecyclerView.ViewHolder {
-        public TextView tvName;
-        public TextView tvCapital;
-        public TextView tvRegion;
+        public TextView tvPersonName;
+        public TextView tvCountryCode;
+        public TextView tvCountry;
 
         public ViewHolder(View itemView) {
             super(itemView);
-            tvName = (TextView) itemView.findViewById(R.id.tvName);
-            tvCapital = (TextView) itemView.findViewById(R.id.tvCapital);
-            tvRegion = (TextView) itemView.findViewById(R.id.tvRegion);
+            tvPersonName = (TextView) itemView.findViewById(R.id.tvPersonName);
+            tvCountryCode = (TextView) itemView.findViewById(R.id.tvCountryCode);
+            tvCountry = (TextView) itemView.findViewById(R.id.tvCountry);
         }
     }
 }
